@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "support_agent": "./support_agent/utils/support_tool.py:support_ticket_agent"
+  },
+  "env": ".env"
+}

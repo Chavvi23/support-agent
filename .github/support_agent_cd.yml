@@ -1,0 +1,50 @@
+name: Sync Support agent source code to support-agent repo
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Copy project folder
+        run: |
+          rm -rf sync-dir
+          mkdir sync-dir
+          cp -r * sync-dir/
+
+      - name: Determine target branch
+        id: target-branch
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "target_branch=main" >> $GITHUB_OUTPUT
+          
+          fi
+
+      - name: Push to external repo
+        run: |
+          cd sync-dir
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote add origin https://x-access-token:${{ secrets.LANGGRAPH_REPO_ACCESS_TOKEN }}@github.com/Chavvi23/support-agent.git
+          git checkout -b ${{ steps.target-branch.outputs.target_branch }}
+          git add .
+          git commit -m "Sync from support-agent ${{ github.ref_name }} branch $(date)"
+          git push --force origin ${{ steps.target-branch.outputs.target_branch }}
