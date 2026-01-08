@@ -6,7 +6,16 @@ import re
 import urllib.request
 from collections import Counter
 from pathlib import Path
+from firecrawl import Firecrawl
+from dotenv import load_dotenv
+import os
+import logging
 
+logger = logging.getLogger(__name__)
+
+load_dotenv(".env", override=True)
+
+app = Firecrawl(api_key=os.getenv("FIRECRAWL_API_KEY"))
 
 def tokenize(text: str) -> list[str]:
     return re.findall(r"[a-z0-9]+", text.lower())
@@ -80,11 +89,10 @@ def read_local_text(path: Path) -> str:
 
 
 def fetch_url_text(url: str, timeout: int = 8) -> str:
-    request = urllib.request.Request(url)
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        content_type = response.headers.get("Content-Type", "")
-        data = response.read()
-        text = data.decode("utf-8", errors="ignore")
-        if "text/html" in content_type:
-            return strip_html(text)
-        return text
+    try:
+        result = app.scrape(url)
+
+        if hasattr(result, "markdown") and result.markdown: 
+            return result.markdown
+    except Exception as exc:
+            logger.error("Failed scraping doc source %s: %s", url, str(exc), exc_info=True)        

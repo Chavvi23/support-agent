@@ -79,6 +79,7 @@ async def retrieve_doc_step(state: TicketState, config: RunnableConfig) -> dict:
     for source in sources:
         try:
             if source.startswith(("http://", "https://")):
+                logger.info("source: %s", source)
                 text = await asyncio.to_thread(fetch_url_text, source)
             else:
                 documents_path = (Path(__file__).parent / "documents" / source).resolve()

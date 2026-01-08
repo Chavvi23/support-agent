@@ -22,12 +22,12 @@ The workflow runs in the following order:
 - Loads sources listed in `support_agent/utils/documents/index.txt`.
 - For URLs, it fetches text via `fetch_url_text`. For local files, it reads from `support_agent/utils/documents/`.
 - Chunks documents with `chunk_text`, tokenizes with `tokenize`, and builds TF-IDF vectors.
-- Computes cosine similarity between the ticket query vector and each chunk, then selects the best match.
+- Computes cosine similarity between the ticket query vector and each chunk then selects the best match.
 - Returns a `doc_snippet` with the matching source and extracted snippet text.
 
 3) `summarize_ticket` (`summarize_ticket_step`)
-- Sends the ticket content, doc snippet, and classification fields to the LLM.
-- Asks for a strict JSON summary, which is stored in `summary`.
+- Sends the ticket content, doc snippet and classification fields to the LLM.
+- Asks for a strict JSON summary which is stored in `summary`.
 
 4) `decide_action` (`decide_action_step`)
 - Uses the summary, urgency, sentiment, and doc snippet to choose `respond` or `escalate` (manual intervention).
@@ -35,7 +35,7 @@ The workflow runs in the following order:
 
 5) `response` (`response_step`)
 - Uses the ticket, summary and doc snippet to generate the final response.
-- Returns a JSON `response` string, which is what the CLI prints.
+- Returns a JSON `response` string which is what the CLI prints.
 
 ### Doc search approach
 
@@ -44,6 +44,7 @@ Doc search is implemented as a TF-IDF + cosine similarity retrieval:
 - `compute_idf` and `tfidf_vector` to build vectors.
 - `cosine_similarity` to score each chunk against the ticket query.
 - `extract_snippet` to return a focused excerpt of the best match.
+URL sources are scraped via Firecrawl for structured extraction.
 
 ![Project Architecture](/images/graph.png)
 
@@ -54,6 +55,7 @@ Doc search is implemented as a TF-IDF + cosine similarity retrieval:
 - LangGraph for workflow orchestration
 - Hugging Face model for NLP
 - LangSmith for cloud deployment and observability
+- Firecrawl for structured URL scraping
 
 ## Setup
 
@@ -74,6 +76,7 @@ poetry install
 3. Create a `.env` file (or export env vars) with the following values:
 
 - `HUGGINGFACEHUB_API_TOKEN`: access token for the Hugging Face model.
+- `FIRECRAWL_API_KEY`: API key for Firecrawl URL scraping.
 - `LANGSMITH_API_KEY`: LangSmith API key for tracing and observability.
 - `LANGSMITH_TRACING`: set to `true` to enable LangSmith tracing.
 - `LANGSMITH_PROJECT`: project name for grouping traces (example: `development`).
@@ -105,10 +108,10 @@ Then open the LangGraph Studio page and send a message to the agent as a JSON or
 ## Sample Flow
 
 
-The agent was provided with official Neon documentation URLs in `support_agent/utils/documents/index.txt` and a user query: *"What's the response time for my Neon ticket if the Severity level is 1?"* The agent parsed the docs and returned a response based strictly on the documentation.
-```
-Based on the Severity level 1 and your Business support plan, according to Neon's response time guidelines, we aim to respond to your issue within 4 hours. If you have a Production support plan, our response time is within 1 hour. Please note that these times are based on the time it takes Neon to respond to your initial request.
-```
+The agent was provided with official Neon documentation URLs in `support_agent/utils/documents/index.txt` and a user query: *"What's the response time for my Neon ticket if the Severity level is 1?"* The agent parsed the docs and returned the following response based strictly on the documentation:
+
+***Based on your support plan, for a Severity level 1 issue, you can expect a response within 1 hour for Production support plans or within 4 hours for Business support plans. Please refer to our response time guidelines for more information on [Link to Response times](https://neon.com/docs/introduction/support#response-times).***
+
 ![Project Flow](/images/flow1.png)
 
 ## Deployment to LangGraph Cloud
@@ -125,6 +128,6 @@ The `support_agent_cd` workflow relies on a GitHub PAT token.
 
 3) Persist doc chunks and embeddings in a vector database so we do not re-embed on every query and can run hybrid retrieval against precomputed embeddings.
 
-4) Use Firecrawl for structured URL scraping.
+4) Expand structured scraping coverage and add more extraction rules in Firecrawl.
 
 5) When the agent escalates to a human, nothing is queued as of now. We can add a SQL database to store escalated tickets so experts can pick them up in first-in order.
