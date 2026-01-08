@@ -78,7 +78,9 @@ poetry install
 - `LANGSMITH_TRACING`: set to `true` to enable LangSmith tracing.
 - `LANGSMITH_PROJECT`: project name for grouping traces (example: `development`).
 
-4. Run locally
+4. Update the knowledge base by adding local file paths or URLs to `support_agent/utils/documents/index.txt`.
+
+5. Run locally
 
 - Option 1: run the agent script and enter a question at the prompt:
 
