@@ -8,7 +8,7 @@ LangGraph-based support ticket agent that classifies, summarizes and responds to
 In many companies, support teams handle a high volume of customer tickets that are largely unstructured, repetitive and dependent on internal knowledge bases that evolve frequently. Manually classifying issues, summarizing customer intent and crafting accurate responses is time consuming.
 
 ### Agentic Solution
-This project implements a LangGraph based multi-agent support system that automates ticket classification, summarization and response generation using the provided documentation and URLs. Agents collaborate to interpret customer intent, retrieve relevant knowledge base content, generate responses. This system leverages agent level reasoning and self-evaluation instead of human annotation. As products and documentation evolve, the system adapts easily by simply updating the knowledge base.
+This project implements a LangGraph based multi-agent support system that automates ticket classification, summarization and response generation using the provided documentation and URLs. Agents collaborate to interpret customer intent, retrieve relevant knowledge base content and generate responses. This system leverages agent level reasoning and self-evaluation instead of human annotation. As products and documentation evolve, the system adapts easily by simply updating the knowledge base.
 
 ## Deep Dive
 
@@ -21,7 +21,7 @@ The workflow runs in the following order:
 2) `retrieve_doc` (`retrieve_doc_step`)
 - Loads sources listed in `support_agent/utils/documents/index.txt`.
 - For URLs, it fetches text via `fetch_url_text`. For local files, it reads from `support_agent/utils/documents/`.
-- Chunks documents with `chunk_text`, tokenizes with `tokenize`, and builds TF-IDF vectors.
+- Chunks documents with `chunk_text`, tokenizes with `tokenize` and builds TF-IDF vectors.
 - Computes cosine similarity between the ticket query vector and each chunk then selects the best match.
 - Returns a `doc_snippet` with the matching source and extracted snippet text.
 
@@ -30,7 +30,7 @@ The workflow runs in the following order:
 - Asks for a strict JSON summary which is stored in `summary`.
 
 4) `decide_action` (`decide_action_step`)
-- Uses the summary, urgency, sentiment, and doc snippet to choose `respond` or `escalate` (manual intervention).
+- Uses the summary, urgency, sentiment and doc snippet to choose `respond` or `escalate` (manual intervention).
 - Returns a JSON `action` and `reason`.
 
 5) `response` (`response_step`)
@@ -116,7 +116,7 @@ The agent was provided with official Neon documentation URLs in `support_agent/u
 
 ## Deployment to LangGraph Cloud
 
-On push to files within `support-agent/**`, it triggers the `support_agent_cd` workflow. That workflow pushes code to the `main` branch in the specified repository, which then deploys to LangGraph Cloud.
+On push to files within `support-agent/**`, it triggers the `support_agent_cd` workflow. That workflow pushes code to the `main` branch in the specified repository which then deploys to LangGraph Cloud.
 
 The `support_agent_cd` workflow relies on a GitHub PAT token.
 
@@ -128,6 +128,4 @@ The `support_agent_cd` workflow relies on a GitHub PAT token.
 
 3) Persist doc chunks and embeddings in a vector database so we do not re-embed on every query and can run hybrid retrieval against precomputed embeddings.
 
-4) Expand structured scraping coverage and add more extraction rules in Firecrawl.
-
-5) When the agent escalates to a human, nothing is queued as of now. We can add a SQL database to store escalated tickets so experts can pick them up in first-in order.
+4) When the agent escalates to a human, nothing is queued as of now. We can add a SQL database to store escalated tickets so experts can pick them up in first-in order.
